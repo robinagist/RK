@@ -4,6 +4,7 @@ import "testing"
 import (
     "rk/pkg"
     "fmt"
+    "time"
 )
 
 
@@ -41,19 +42,34 @@ func TestCreateTransaction(t *testing.T) {
         t.Errorf("error")
     }
 
-    fmt.Println("sender tx", sender)
-    fmt.Println("transaction", nta)
-
+    // create a transaction pool
+    tp := new(rk.TransactionPool)
+    tp.Add(nta)
     nta, err = rk.NewTransaction(sender, recipient, 0, 0, b)
 
     if err != nil {
         fmt.Println(err)
         t.Errorf("unable to create new transaction")
     }
-    fmt.Println("sender tx", sender)
+
+    tp.Add(nta)
+
+    if tp.Size() != 2 {
+        t.Errorf("size mismatch:  should be 2 - got ", tp.Size())
+
+    }
 
     // create a block
+    // start with block zero
+    bc := new(rk.BlockChain)
+    timestamp := time.Now().String()
+    blk := bc.NewBlock(0,"", timestamp, nil)
+    bc.AddBlock(blk)
 
+    if bc.Size() != 1 {
+        t.Errorf("chain did not add Block Zero")
+    }
 
-
+    // find a block
+    blk2 := rk.FindBlock(tp, 1)
 }

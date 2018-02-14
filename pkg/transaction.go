@@ -53,16 +53,6 @@ func NewTransaction(
 }
 
 
-// Transaction Pool
-type TransactionPool struct {
-	tPool []Transaction
-}
-
-func (tp *TransactionPool) filter(criteria string) []Transaction {
-	return nil
-}
-
-
 func prevalidate(sender *Account, recipient *Account, amount float32) bool {
 	if sender.balance < amount {
 		return false

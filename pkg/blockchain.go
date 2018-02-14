@@ -15,66 +15,78 @@ import (
 type Block struct {
 	index         int
 	nonce         uint64
-	timestamp     time.Time
-	transactions  []Transaction
+	timestamp     string
 	hashPrevBlock string
+	merkleRootHash string
 }
 
+
 type BlockChain struct {
-    txQueue []Transaction
     chain []Block
     target uint64
 }
 
-// map of address to Account
-type Accounts map[string] Account
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
 // creates a new block on BlockChain
-func (bc *BlockChain) NewBlock (nonce uint64, hashPrevBlock string, transactions []Transaction) *Block {
+func (bc *BlockChain) NewBlock (nonce uint64, hashPrevBlock string, ts string, transactions []Transaction) *Block {
 
 	indexCount := len(bc.chain)
-	timestamp := time.Time{}
 
 	block := Block {
 		index: indexCount,
 		nonce: nonce,
-		transactions: transactions,
-		timestamp: timestamp,
+		timestamp: ts,
 		hashPrevBlock: hashPrevBlock,
+		merkleRootHash: "",
 		}
 
-	bc.txQueue = nil
-	bc.chain = append(bc.chain, block)
 	return &block
 }
 
-
-
-
-// proof of work algorithm
-func (bc *BlockChain) ProofOfWork (input string) int {
-
-	nonce := 0
-	for {
-		if bc.ValidProof(input, nonce) {
-			return nonce
-		}
-	nonce += 1
-	}
+func (bc *BlockChain) AddBlock (block *Block) {
+	bc.chain = append(bc.chain, *block)
 }
 
-// validate proof
-func (bc *BlockChain) ValidProof(input string, proof int) bool {
+// returns the hash of the previous block
+func (bc *BlockChain) hashPrevBlock() string {
+	block := bc.chain[len(bc.chain)-1]
+	return string(Hash(&block))
+}
 
-   pfx := []byte(input + string(proof))
-   h := sha256.New()
-   val := binary.BigEndian.Uint64(h.Sum(pfx))
-   return val < rk.DIFFICULTY
 
+// size of the chain
+func (bc *BlockChain) Size() int {
+	return len(bc.chain)
+}
+
+func (bc *BlockChain) FindBlock(tp *TransactionPool) *Block {
+
+	block := new(Block)
+	block.index = bc.Size()
+	block.timestamp = time.Now().String()
+	block.hashPrevBlock = bc.hashPrevBlock()
+
+	// get the desired transactions from the transaction pool
+	transactions := tp.Filter("")
+	block.merkleRootHash = MerkelRoot(transactions)
+
+	// proof of work
+	sequence := block.timestamp + block.hashPrevBlock + block.merkleRootHash
+	block.nonce = ProofOfWork(sequence)
+	return block
+
+}
+
+
+func GenerateAddressString() string {
+	t := string(time.Now().Nanosecond())
+	n := sha3.New256()
+	n.Write([]byte(t + string(rand.Intn(1000000))))
+	return "099" + hex.EncodeToString(n.Sum(nil))
 }
 
 // hash block
@@ -91,21 +103,27 @@ func Hash(block *Block) []byte {
 }
 
 
-// Create New Account
-func NewAccount() *Account {
-	account := new(Account)
-	account.address = GenerateAddressString()
-    return account
+// proof of work
+func ProofOfWork (input string) uint64 {
+	var nonce uint64
+	nonce = 0
+	for {
+		if ValidProof(input, nonce) {
+			return nonce
+		}
+		nonce += 1
+	}
 }
 
-func GenerateAddressString() string {
-	t := string(time.Now().Nanosecond())
-	n := sha3.New256()
-	n.Write([]byte(t + string(rand.Intn(1000000))))
-	return "099" + hex.EncodeToString(n.Sum(nil))
+// validate proof
+func ValidProof(input string, proof uint64) bool {
+
+	pfx := []byte(input + string(proof))
+	h := sha256.New()
+	val := binary.BigEndian.Uint64(h.Sum(pfx))
+	return val < rk.DIFFICULTY
+
 }
-
-
 
 
 
