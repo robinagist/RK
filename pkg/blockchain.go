@@ -35,7 +35,7 @@ func (bc *BlockChain) init() {
 }
 
 // creates the first block on BlockChain
-func (bc *BlockChain) BlockZero () *Block {
+func (bc *BlockChain) GenerateZeroBlock () *Block {
 
 	indexCount := len(bc.chain)
 	if indexCount != 0 {
@@ -84,7 +84,7 @@ func (bc *BlockChain) FindBlock(tp *TransactionPool) *Block {
 	block.MerkleRootHash = MerkelRoot(block.Transactions)
 
 	// proof of work
-	sequence := block.Timestamp + block.HashPrevBlock + block.MerkleRootHash
+	sequence := block.HashPrevBlock + block.MerkleRootHash
 	block.Nonce = ProofOfWork(sequence)
 	return block
 
@@ -121,17 +121,12 @@ func ProofOfWork (input string) uint64 {
 func ValidProof(inp string, proof uint64) bool {
 
 	pfx := inp + strconv.Itoa(int(proof))
-    print("pfx: ", pfx, " proof: ", proof, "\n")
+//    print("pfx: ", pfx, " proof: ", proof, "\n")
 	pfxx := []byte(pfx)
 	h := sha256.New()
 	h.Write(pfxx)
-	hh := h.Sum(nil)
-	fmt.Println(hex.EncodeToString(hh))
-
+//	hh := h.Sum(nil)
 	val := binary.BigEndian.Uint64(h.Sum(nil))
-    print(val)
-//	os.Exit(0)
- //   fmt.Println("proof: ", proof, " prefix: ", pfx, " val: ", val, " difficulty: ", rk.DIFFICULTY, "\n")
 
 	return val < rk.DIFFICULTY
 
