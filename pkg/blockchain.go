@@ -5,19 +5,22 @@ import (
 	"encoding/json"
 	"crypto/sha256"
 	"math/rand"
-	"encoding/hex"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"encoding/binary"
 	"rk/internal"
+	"errors"
+	"strconv"
+	"fmt"
+	"encoding/hex"
 )
 
 
 type Block struct {
-	index         int
-	nonce         uint64
-	timestamp     string
-	hashPrevBlock string
-	merkleRootHash string
+	Index         int        `json:"index"`
+	Nonce         uint64     `json:"nonce"`
+	Timestamp     string     `json:"timestamp"`
+	Transactions  []Transaction    `json:"transactions"`
+	HashPrevBlock string     `json:"hashPrevBlock"`
+	MerkleRootHash string    `json:"merkleRootHash"`
 }
 
 
@@ -27,23 +30,26 @@ type BlockChain struct {
 }
 
 
-func init() {
+func (bc *BlockChain) init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// creates a new block on BlockChain
-func (bc *BlockChain) NewBlock (nonce uint64, hashPrevBlock string, ts string, transactions []Transaction) *Block {
+// creates the first block on BlockChain
+func (bc *BlockChain) BlockZero () *Block {
 
 	indexCount := len(bc.chain)
+	if indexCount != 0 {
+		errors.New("chain has already been initialized")
+	}
+    ts := time.Now().String()
 
 	block := Block {
-		index: indexCount,
-		nonce: nonce,
-		timestamp: ts,
-		hashPrevBlock: hashPrevBlock,
-		merkleRootHash: "",
+		Index: 0,
+		Nonce: 0,
+		Timestamp: ts,
+		HashPrevBlock: "1rk.block.zero",
+		MerkleRootHash: "noor",
 		}
-
 	return &block
 }
 
@@ -54,7 +60,9 @@ func (bc *BlockChain) AddBlock (block *Block) {
 // returns the hash of the previous block
 func (bc *BlockChain) hashPrevBlock() string {
 	block := bc.chain[len(bc.chain)-1]
-	return string(Hash(&block))
+	ks := string(Hash(&block))
+	fmt.Println(ks)
+	return ks
 }
 
 
@@ -65,41 +73,35 @@ func (bc *BlockChain) Size() int {
 
 func (bc *BlockChain) FindBlock(tp *TransactionPool) *Block {
 
+	bc.init()
 	block := new(Block)
-	block.index = bc.Size()
-	block.timestamp = time.Now().String()
-	block.hashPrevBlock = bc.hashPrevBlock()
+	block.Index = bc.Size()
+	block.Timestamp = time.Now().String()
+	block.HashPrevBlock = bc.hashPrevBlock()
 
 	// get the desired transactions from the transaction pool
-	transactions := tp.Filter("")
-	block.merkleRootHash = MerkelRoot(transactions)
+	block.Transactions = tp.Filter("")
+	block.MerkleRootHash = MerkelRoot(block.Transactions)
 
 	// proof of work
-	sequence := block.timestamp + block.hashPrevBlock + block.merkleRootHash
-	block.nonce = ProofOfWork(sequence)
+	sequence := block.Timestamp + block.HashPrevBlock + block.MerkleRootHash
+	block.Nonce = ProofOfWork(sequence)
 	return block
 
 }
 
 
-func GenerateAddressString() string {
-	t := string(time.Now().Nanosecond())
-	n := sha3.New256()
-	n.Write([]byte(t + string(rand.Intn(1000000))))
-	return "099" + hex.EncodeToString(n.Sum(nil))
-}
-
 // hash block
-func Hash(block *Block) []byte {
+func Hash(block *Block) string {
 
 	blockJson, err := json.Marshal(block)
 	if err != nil {
 		panic(err)
 	}
-
 	// get a hex digest
 	h := sha256.New()
-	return h.Sum(blockJson)
+	h.Write(blockJson)
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 
@@ -116,11 +118,21 @@ func ProofOfWork (input string) uint64 {
 }
 
 // validate proof
-func ValidProof(input string, proof uint64) bool {
+func ValidProof(inp string, proof uint64) bool {
 
-	pfx := []byte(input + string(proof))
+	pfx := inp + strconv.Itoa(int(proof))
+    print("pfx: ", pfx, " proof: ", proof, "\n")
+	pfxx := []byte(pfx)
 	h := sha256.New()
-	val := binary.BigEndian.Uint64(h.Sum(pfx))
+	h.Write(pfxx)
+	hh := h.Sum(nil)
+	fmt.Println(hex.EncodeToString(hh))
+
+	val := binary.BigEndian.Uint64(h.Sum(nil))
+    print(val)
+//	os.Exit(0)
+ //   fmt.Println("proof: ", proof, " prefix: ", pfx, " val: ", val, " difficulty: ", rk.DIFFICULTY, "\n")
+
 	return val < rk.DIFFICULTY
 
 }

@@ -4,7 +4,7 @@ import "testing"
 import (
     "rk/pkg"
     "fmt"
-    "time"
+    "encoding/json"
 )
 
 
@@ -34,7 +34,7 @@ func TestCreateAccount(t *testing.T) {
 func TestCreateTransaction(t *testing.T) {
     sender := rk.NewAccount()
     recipient := rk.NewAccount()
-    b := []byte("hello")
+    b := "hello world"
     nta, err := rk.NewTransaction(sender, recipient, 0, 0, b)
 
     if err != nil {
@@ -62,8 +62,8 @@ func TestCreateTransaction(t *testing.T) {
     // create a block
     // start with block zero
     bc := new(rk.BlockChain)
-    timestamp := time.Now().String()
-    blk := bc.NewBlock(0,"", timestamp, nil)
+ //   timestamp := time.Now().String()
+    blk := bc.BlockZero()
     bc.AddBlock(blk)
 
     if bc.Size() != 1 {
@@ -71,5 +71,8 @@ func TestCreateTransaction(t *testing.T) {
     }
 
     // find a block
-    blk2 := rk.FindBlock(tp, 1)
+    blk2 := bc.FindBlock(tp)
+    fmt.Println(json.Marshal(blk2))
+
+
 }

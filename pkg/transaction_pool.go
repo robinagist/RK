@@ -4,6 +4,7 @@ import (
 	"github.com/cbergoon/merkletree"
 	"encoding/json"
 	"crypto/sha256"
+	"encoding/hex"
 )
 
 // Transaction Pool
@@ -48,13 +49,13 @@ func MerkelRoot(txs []Transaction) string {
 	for _, tx := range txs {
 		mtx, err := json.Marshal(tx)
 		if err != nil {
-
+            panic(err)
 		}
 		mtc := Content{x: string(mtx)}
 		list = append(list, mtc)
 	}
 
 	tree, _ := merkletree.NewTree(list)
-	root := string(tree.MerkleRoot())
-	return root
+	root := tree.MerkleRoot()
+	return hex.EncodeToString(root)
 }

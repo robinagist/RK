@@ -7,14 +7,14 @@ import (
 
 //// Transactions
 type Transaction struct {
-	txId int
-	timestamp time.Time
-	ttl int
-	sender string
-	recipient string
-	txType int
-	data []byte
-	amount float32
+	TxId int              `json:"txId"`
+	Timestamp time.Time   `json:"timestamp"`
+	Ttl int               `json:"ttl"`
+	Sender string         `json:"sender"`
+	Recipient string      `json:"recipient"`
+	TxType int            `json:"txType"`
+	Data string           `json:"data"`
+	Amount float32        `json:"amount"`
 }
 
 // transfer from one account to another
@@ -29,7 +29,7 @@ func NewTransaction(
 	recipient *Account,
 	txType int,
 	amount float32,
-	data []byte) (*Transaction, error) {
+	data string) (*Transaction, error) {
 
 	// make sure transaction is valid
     if !prevalidate(sender, recipient, amount) {
@@ -38,12 +38,12 @@ func NewTransaction(
 
 	// create the transaction
 	transaction := Transaction {
-		txId: sender.txs,
-		sender: sender.address,
-		recipient: recipient.address,
-		txType: txType,
-		amount: amount,
-		data: data,
+		TxId: sender.txs,
+		Sender: sender.address,
+		Recipient: recipient.address,
+		TxType: txType,
+		Amount: amount,
+		Data: data,
 	}
 
 	if amount > 0 {
