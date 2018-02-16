@@ -15,10 +15,10 @@ type Account struct {
 }
 
 // map of address to Account
-type Accounts map[string] Account
+type Accounts map[string] *Account
 
 // Create New Account
-func NewAccount() *Account {
+func (acs *Accounts) NewAccount() *Account {
 	account := new(Account)
 	account.address = GenerateAddressString()
 	return account
@@ -28,5 +28,5 @@ func GenerateAddressString() string {
 	t := string(time.Now().Nanosecond())
 	n := sha3.New256()
 	n.Write([]byte(t + string(rand.Intn(1000000))))
-	return "099" + hex.EncodeToString(n.Sum(nil))
+	return ("099" + hex.EncodeToString(n.Sum(nil)))[0:31]
 }

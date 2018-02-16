@@ -121,11 +121,9 @@ func ProofOfWork (input string) uint64 {
 func ValidProof(inp string, proof uint64) bool {
 
 	pfx := inp + strconv.Itoa(int(proof))
-//    print("pfx: ", pfx, " proof: ", proof, "\n")
 	pfxx := []byte(pfx)
 	h := sha256.New()
 	h.Write(pfxx)
-//	hh := h.Sum(nil)
 	val := binary.BigEndian.Uint64(h.Sum(nil))
 
 	return val < rk.DIFFICULTY
