@@ -4,9 +4,10 @@ import "testing"
 import (
     "rk/pkg"
     "fmt"
-    "encoding/json"
 )
 
+
+var BC *rk.BlockChain
 
 func TestTrue(t *testing.T) {
 
@@ -56,23 +57,41 @@ func TestCreateTransaction(t *testing.T) {
 
     if tp.Size() != 2 {
         t.Errorf("size mismatch:  should be 2 - got ", tp.Size())
-
     }
 
     // create a block
     // start with block zero
-    bc := new(rk.BlockChain)
+    BC := new(rk.BlockChain)
  //   timestamp := time.Now().String()
-    blk := bc.BlockZero()
-    bc.AddBlock(blk)
+    blk := BC.GenerateZeroBlock()
+    BC.AddBlock(blk)
 
-    if bc.Size() != 1 {
-        t.Errorf("chain did not add Block Zero")
-    }
+    if BC.Size() != 1 {
+        t.Errorf("chain did not add zero block")
+    } else {fmt.Println("chain added zero block")}
 
     // find a block
-    blk2 := bc.FindBlock(tp)
-    fmt.Println(json.Marshal(blk2))
+    blk2 := BC.FindBlock(tp)
+    BC.AddBlock(blk2)
+    fmt.Println(blk2.Nonce)
+
+    sequence := blk2.HashPrevBlock + blk2.MerkleRootHash
+    if !rk.ValidProof(sequence, blk2.Nonce) {
+        t.Errorf("Nonce does not validate")
+    } else {fmt.Println("nonce validates")}
+
+    // find another block without dumping transaction pool
+    blk3 := BC.FindBlock(tp)
+    BC.AddBlock(blk3)
+    fmt.Println(blk3.Nonce)
+
+    if BC.Size() != 3 {
+        t.Errorf("chain should have 3 blocks - only has ", BC.Size())
+    }
+    sequence = blk3.HashPrevBlock + blk3.MerkleRootHash
+    if !rk.ValidProof(sequence, blk3.Nonce) {
+        t.Errorf("Nonce does not validate")
+    } else {fmt.Println("nonce validates")}
 
 
 }
