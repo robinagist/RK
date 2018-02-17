@@ -1,4 +1,4 @@
-# RK
+# nRK
 Experimental blockchain in Go
 
 This is a new blockchain project.  The goal is to build a market-definable, 
