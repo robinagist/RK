@@ -47,6 +47,7 @@ func (bc *BlockChain) GenerateZeroBlock () *Block {
 		Index: 0,
 		Nonce: 0,
 		Timestamp: ts,
+		Transactions: nil,
 		HashPrevBlock: "1rk.block.zero",
 		MerkleRootHash: "noor",
 		}
@@ -81,7 +82,7 @@ func (bc *BlockChain) FindBlock(tp *TransactionPool) *Block {
 
 	// get the desired transactions from the transaction pool
 	block.Transactions = tp.Filter("")
-	block.MerkleRootHash = MerkelRoot(block.Transactions)
+	block.MerkleRootHash = MerkleRoot(block.Transactions)
 
 	// proof of work
 	sequence := block.HashPrevBlock + block.MerkleRootHash
@@ -126,7 +127,7 @@ func ValidProof(inp string, proof uint64) bool {
 	h.Write(pfxx)
 	val := binary.BigEndian.Uint64(h.Sum(nil))
 
-	return val < rk.DIFFICULTY
+	return val < rk.TARGET
 
 }
 

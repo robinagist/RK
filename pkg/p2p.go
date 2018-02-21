@@ -1,31 +1,23 @@
 package rk
 
 import (
-"fmt"
-"os"
+    "fmt"
+    "os"
 
-"github.com/ethereum/go-ethereum/crypto"
-"github.com/ethereum/go-ethereum/p2p"
-	"encoding/json"
+    "github.com/ethereum/go-ethereum/crypto"
+    "github.com/ethereum/go-ethereum/p2p"
 )
 
 const messageId = 0
 
-type Envelope struct {
-	Origin string
-	Relay string
-	MessageType uint
-	Timestamp string
-	Ttl int
-	Message []byte
-}
+
 
 func RK1Protocol() p2p.Protocol {
 	return p2p.Protocol{
 		Name:    "RK1Protocol",
 		Version: 1,
 		Length:  1,
-		Run:     rk1Handler,
+		Run:     rk1Runner,
 	}
 }
 
@@ -48,49 +40,21 @@ func Start() {
 		os.Exit(1)
 	}
 
+	nodeinfo := srv.NodeInfo()
+	fmt.Println("server started", "enode", nodeinfo.Enode, "name", nodeinfo.Name, "ID", nodeinfo.ID, "IP", nodeinfo.IP)
+
 	select {}
 }
 
-func rk1Handler(peer *p2p.Peer, ws p2p.MsgReadWriter) error {
-	for {
-		msg, err := ws.ReadMsg()
-		if err != nil {
-			return err
-		}
-
-		var envelope Envelope
-		err = msg.Decode(&envelope)
-		if err != nil {
-			// handle decode error
-			return err
-		}
-
-		switch envelope.MessageType {
-		// standard transaction
-		case 1:
-            var tx Transaction
-			err := json.Unmarshal(envelope.Message, &tx)
-			if err != nil {
-				return err
-			}
-
-			err = p2p.SendItems(ws, messageId, "bar")
-			if err != nil {
-				return err
-			}
-
-		// standard block find broadcast
-		case 2:
-			var block Block
-			err := json.Unmarshal(envelope.Message, &block)
-			if err != nil {
-				return err
-			}
-
-		default:
-			fmt.Println("recv:", envelope)
-		}
+func rk1Runner(peer *p2p.Peer, ws p2p.MsgReadWriter) error {
+    envelope, err := ExtractEnvelope(ws)
+    if err != nil {
+    	panic(err)
 	}
+    handler := new(RKBasicHandler)
+    handler.ws = &ws
+
+    handler.Handle(envelope)
 
 	return nil
 }

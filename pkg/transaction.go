@@ -19,8 +19,8 @@ type Transaction struct {
 
 // transfer from one account to another
 func (t *Transaction) transfer (sender *Account, recipient *Account, amount float32) {
-	sender.balance -= amount
-	recipient.balance += amount
+	sender.Balance -= amount
+	recipient.Balance += amount
 }
 
 // Creates a new transaction
@@ -38,9 +38,9 @@ func NewTransaction(
 
 	// create the transaction
 	transaction := Transaction {
-		TxId: sender.txs,
-		Sender: sender.address,
-		Recipient: recipient.address,
+		TxId: sender.Txs,
+		Sender: sender.Address,
+		Recipient: recipient.Address,
 		TxType: txType,
 		Amount: amount,
 		Data: data,
@@ -54,7 +54,7 @@ func NewTransaction(
 
 
 func prevalidate(sender *Account, recipient *Account, amount float32) bool {
-	if sender.balance < amount {
+	if sender.Balance < amount {
 		return false
 	}
 	return true
