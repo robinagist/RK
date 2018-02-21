@@ -9,18 +9,20 @@ import (
 
 // Account holds address, balance and public key information
 type Account struct {
-	address string
-	balance float32
-	txs int
+	Address string     `json:"address"`
+	Balance float32    `json:"balance"`
+	Txs int            `json:"txs"`
 }
 
 // map of address to Account
 type Accounts map[string] *Account
 
 // Create New Account
-func (acs *Accounts) NewAccount() *Account {
+func (acs *Accounts) NewAccount(address string) *Account {
 	account := new(Account)
-	account.address = GenerateAddressString()
+	if address == "" {
+		account.Address = GenerateAddressString()
+	} else { account.Address = address}
 	return account
 }
 

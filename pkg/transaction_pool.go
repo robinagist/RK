@@ -43,8 +43,8 @@ func (t Content) Equals(other merkletree.Content) bool {
 	return t.x == other.(Content).x
 }
 
-
-func MerkelRoot(txs []Transaction) string {
+// generates the merkle root
+func MerkleRoot(txs []Transaction) string {
 	var list []merkletree.Content
 	for _, tx := range txs {
 		mtx, err := json.Marshal(tx)

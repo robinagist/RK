@@ -24,7 +24,8 @@ func TestGenerateAddress(t *testing.T) {
 }
 
 func TestCreateAccount(t *testing.T) {
-    account := rk.NewAccount()
+    a := new(rk.Accounts)
+    account := a.NewAccount("")
     if account == nil {
         t.Errorf("no Account created")
     }
@@ -33,8 +34,11 @@ func TestCreateAccount(t *testing.T) {
 
 // create a transaction
 func TestCreateTransaction(t *testing.T) {
-    sender := rk.NewAccount()
-    recipient := rk.NewAccount()
+
+    accounts := new(rk.Accounts)
+
+    sender := accounts.NewAccount("")
+    recipient := accounts.NewAccount("")
     b := "hello world"
     nta, err := rk.NewTransaction(sender, recipient, 0, 0, b)
 
